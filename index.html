@@ -13,8 +13,21 @@
     <label class="block mb-2">Jarak Pengiriman (km)</label>
     <input id="jarak" type="number" class="w-full border p-2 mb-4 rounded" placeholder="Masukkan jarak" />
 
-    <label class="block mb-2">Berat Barang (kg)</label>
-    <input id="berat" type="number" class="w-full border p-2 mb-4 rounded" placeholder="Contoh: 500" />
+   <!-- Dropdown jenis barang -->
+<label class="block mb-2">Pilih Jenis Barang</label>
+<select id="jenisBarang" onchange="isiBeratOtomatis()" class="w-full border p-2 mb-4 rounded">
+  <option value="">-- Pilih jenis barang (opsional) --</option>
+  <option value="50">Kulkas 1 pintu (50 kg)</option>
+  <option value="60">Mesin Cuci (60 kg)</option>
+  <option value="80">Lemari Besar (80 kg)</option>
+  <option value="100">Sofa 3 Seater (100 kg)</option>
+  <option value="25">Dus Besar (25 kg)</option>
+</select>
+
+<!-- Tetap bisa ubah berat manual -->
+<label class="block mb-2">Berat Barang (kg)</label>
+<input id="berat" type="number" class="w-full border p-2 mb-4 rounded" placeholder="Contoh: 500" />
+
 
     <label class="block mb-2">Jenis Kendaraan</label>
     <div class="flex space-x-4 mb-4">
@@ -124,6 +137,12 @@
       .then(() => alert("✅ Estimasi berhasil disalin! Tempelkan di WhatsApp."))
       .catch(() => alert("❌ Gagal menyalin teks."));
   }
+    function isiBeratOtomatis() {
+  const berat = document.getElementById('jenisBarang').value;
+  if (berat) {
+    document.getElementById('berat').value = berat;
+  }
+}
 </script>
 </body>
 </html>
