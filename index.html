@@ -37,11 +37,13 @@
 
     <button onclick="hitung()" class="w-full bg-blue-600 text-white py-2 rounded">Hitung Ongkir</button>
 
-    <div class="mt-6" id="hasil"></div>
-      <div class="mt-4 flex space-x-2">
-        <button onclick="salinWA()" class="bg-green-600 text-white px-4 py-2 rounded">Salin ke WA</button>
-        <button onclick="kirimWA()" class="bg-green-500 text-white px-4 py-2 rounded">Kirim ke WhatsApp</button>
-      </div>
+    <div class="mt-6 space-y-4" id="hasil"></div>
+
+    <div class="mt-4 flex space-x-2">
+      <button onclick="salinWA()" class="bg-green-600 text-white px-4 py-2 rounded">Salin ke WA</button>
+      <button onclick="kirimWA()" class="bg-green-500 text-white px-4 py-2 rounded">Kirim ke WhatsApp</button>
+    </div>
+
     <textarea id="waText" class="hidden"></textarea>
   </div>
 
@@ -88,7 +90,35 @@
         <p><strong>Multi Tujuan:</strong> Rp${tambahanTujuan.toLocaleString()}</p>
         <p><strong>Total Estimasi:</strong> <span class="text-green-600 font-bold">Rp${total.toLocaleString()}</span></p>
       `;
+
+      document.getElementById('waText').value = `
+🚚 Estimasi Ongkir
+
+🔹 Kendaraan: ${kendaraan === 'pickup' ? 'Pick Up' : 'Van'}
+🔹 Jarak: ${jarak} km (PP ${pp ? '✅' : '❌'})
+🔹 BBM: Rp${Math.round(biayaBBM).toLocaleString()}
+🔹 Jasa: Rp${biayaJasa.toLocaleString()}
+🔹 Tol: Rp${tol.toLocaleString()}
+🔹 Helper: ${helper ? '✅ Ya (Rp75.000)' : '❌ Tidak'}
+🔹 Tujuan: ${tujuan} titik
+
+💰 Total Estimasi: Rp${total.toLocaleString()}
+`.trim();
+    }
+
+    function salinWA() {
+      const text = document.getElementById('waText').value;
+      navigator.clipboard.writeText(text)
+        .then(() => alert("Teks berhasil disalin ke clipboard!"))
+        .catch(() => alert("Gagal menyalin teks."));
+    }
+
+    function kirimWA() {
+      const text = document.getElementById('waText').value;
+      const encoded = encodeURIComponent(text);
+      window.open(`https://wa.me/?text=${encoded}`, '_blank');
     }
   </script>
 </body>
 </html>
+
