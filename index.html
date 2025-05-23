@@ -173,6 +173,9 @@ ${helper ? "- Helper: ✅ (Rp75.000)" : "- Helper: ❌"}
 - Tol: Rp${tol.toLocaleString()}
 ${tujuan > 1 ? `- Multi Tujuan: ${tujuan} tujuan → Tambahan Rp${tambahanTujuan.toLocaleString()}` : ""}
 ${overload > 0 ? `- Overload: ${overload} kg × Rp${t.overload.toLocaleString()} = Rp${biayaOverload.toLocaleString()}` : ""}
+
+💰 Total Estimasi: Rp${total.toLocaleString()}
+
 `.trim();
     }
 
