@@ -20,7 +20,6 @@
 <div id="mainApp">
   <div class="max-w-full sm:max-w-xl mx-auto bg-white p-6 rounded shadow">
     <h1 class="text-2xl font-bold mb-4">Kalkulator Ongkir</h1>
-
     <label class="block mb-2">Tambah Barang</label>
     <div class="flex gap-2 mb-4 flex-wrap sm:flex-nowrap">
       <select id="jenisBarang" class="flex-1 border p-2 rounded">
@@ -39,7 +38,6 @@
 
     <label class="block mb-2">Total Berat (kg)</label>
     <input id="berat" type="number" readonly class="w-full border p-2 mb-4 rounded bg-gray-100" />
-
     <label class="block mb-2">Jarak Pengiriman (km)</label>
     <input id="jarak" type="number" class="w-full border p-2 mb-4 rounded" />
 
@@ -64,7 +62,6 @@
       <input type="checkbox" id="helper" />
       <label for="helper">Butuh Helper? (+Rp75.000)</label>
     </div>
-
     <button onclick="hitung()" class="w-full bg-blue-600 text-white py-2 rounded">Hitung Ongkir</button>
 
     <div class="mt-6 space-y-4" id="hasil"></div>
@@ -76,15 +73,13 @@
     <textarea id="waText" class="hidden"></textarea>
   </div>
 </div>
-
 <script>
-  let kendaraan = 'pickup';
-  let barangList = [];
+let kendaraan = 'pickup';
+let barangList = [];
 
-  
 function cekPassword() {
   const pass = document.getElementById("password").value;
-  const benar = "ongkir123"; // ubah jika perlu
+  const benar = "ongkir123";
 
   if (pass === benar) {
     document.getElementById("loginForm").style.display = "none";
@@ -93,122 +88,108 @@ function cekPassword() {
     document.getElementById("loginError").style.display = "block";
   }
 }
- else {
-      document.getElementById("loginError").style.display = "block";
-    }
+
+function pilih(jenis) {
+  kendaraan = jenis;
+  document.getElementById('btnPickup').classList.remove('bg-blue-600', 'text-white');
+  document.getElementById('btnVan').classList.remove('bg-blue-600', 'text-white');
+  if (jenis === 'pickup') {
+    document.getElementById('btnPickup').classList.add('bg-blue-600', 'text-white');
+  } else {
+    document.getElementById('btnVan').classList.add('bg-blue-600', 'text-white');
   }
+}
+function tambahBarang() {
+  const berat = parseFloat(document.getElementById("jenisBarang").value);
+  const jumlah = parseInt(document.getElementById("jumlahBarang").value);
+  const label = document.getElementById("jenisBarang").selectedOptions[0].text;
 
-  function pilih(jenis) {
-    kendaraan = jenis;
-    document.getElementById('btnPickup').classList.remove('bg-blue-600', 'text-white');
-    document.getElementById('btnVan').classList.remove('bg-blue-600', 'text-white');
-    if (jenis === 'pickup') {
-      document.getElementById('btnPickup').classList.add('bg-blue-600', 'text-white');
-    } else {
-      document.getElementById('btnVan').classList.add('bg-blue-600', 'text-white');
-    }
-  }
+  if (!berat || !jumlah) return;
+  barangList.push({ label, berat, jumlah });
+  renderBarang();
+}
 
-  function tambahBarang() {
-    const berat = parseFloat(document.getElementById("jenisBarang").value);
-    const jumlah = parseInt(document.getElementById("jumlahBarang").value);
-    const label = document.getElementById("jenisBarang").selectedOptions[0].text;
-    if (!berat || !jumlah) return;
-    barangList.push({ label, berat, jumlah });
-    renderBarang();
-  }
+function renderBarang() {
+  const container = document.getElementById("daftarBarang");
+  container.innerHTML = barangList.map(item => 
+    `<div>• ${item.label} × ${item.jumlah} = ${item.berat * item.jumlah} kg</div>`
+  ).join("");
+  const totalBerat = barangList.reduce((sum, item) => sum + item.berat * item.jumlah, 0);
+  document.getElementById("berat").value = totalBerat;
+}
+function hitung() {
+  const jarak = parseFloat(document.getElementById('jarak').value) || 0;
+  const berat = parseFloat(document.getElementById('berat').value) || 0;
+  const tol = parseFloat(document.getElementById('tol').value) || 0;
+  const tujuan = parseInt(document.getElementById('tujuan').value) || 1;
+  const pp = document.getElementById('pp').checked;
+  const helper = document.getElementById('helper').checked;
 
-  function renderBarang() {
-    const container = document.getElementById("daftarBarang");
-    container.innerHTML = barangList.map(item => 
-      `<div>â€¢ ${item.label} Ã— ${item.jumlah} = ${item.berat * item.jumlah} kg</div>`
-    ).join("");
-    const totalBerat = barangList.reduce((sum, item) => sum + item.berat * item.jumlah, 0);
-    document.getElementById("berat").value = totalBerat;
-  }
+  const tarif = {
+    pickup: { tarifPerKm: 5500, konsumsi: 1 / 8, tetap: 60000, kapasitas: 800, overload: 300 },
+    van: { tarifPerKm: 6000, konsumsi: 1 / 10, tetap: 45000, kapasitas: 400, overload: 500 },
+  };
 
-  function hitung() {
-    const jarak = parseFloat(document.getElementById('jarak').value) || 0;
-    const berat = parseFloat(document.getElementById('berat').value) || 0;
-    const tol = parseFloat(document.getElementById('tol').value) || 0;
-    const tujuan = parseInt(document.getElementById('tujuan').value) || 1;
-    const pp = document.getElementById('pp').checked;
-    const helper = document.getElementById('helper').checked;
+  const hargaBBM = 10500;
+  const biayaHelper = helper ? 75000 : 0;
+  const tambahanTujuan = (tujuan - 1) * 10000;
 
-    const tarif = {
-      pickup: { tarifPerKm: 5500, konsumsi: 1 / 8, tetap: 60000, kapasitas: 800, overload: 300 },
-      van: { tarifPerKm: 6000, konsumsi: 1 / 10, tetap: 45000, kapasitas: 400, overload: 500 },
-    };
+  const t = tarif[kendaraan];
+  const totalJarak = pp ? jarak * 2 : jarak;
+  const biayaBBM = totalJarak * t.konsumsi * hargaBBM;
+  const biayaJasa = totalJarak * t.tarifPerKm;
+  const overload = berat > t.kapasitas ? (berat - t.kapasitas) : 0;
+  const biayaOverload = overload * t.overload;
+  const total = Math.round(biayaBBM + biayaJasa + t.tetap + tol + biayaHelper + tambahanTujuan + biayaOverload);
 
-    const hargaBBM = 10500;
-    const biayaHelper = helper ? 75000 : 0;
-    const tambahanTujuan = (tujuan - 1) * 10000;
+  document.getElementById('hasil').innerHTML = `
+    <p><strong>Biaya BBM:</strong> Rp${Math.round(biayaBBM).toLocaleString()}</p>
+    <p><strong>Biaya Jasa:</strong> Rp${biayaJasa.toLocaleString()}</p>
+    <p><strong>Biaya Tol:</strong> Rp${tol.toLocaleString()}</p>
+    <p><strong>Biaya Helper:</strong> Rp${biayaHelper.toLocaleString()}</p>
+    <p><strong>Multi Tujuan:</strong> Rp${tambahanTujuan.toLocaleString()}</p>
+    <p><strong>Overload (${overload} kg):</strong> Rp${biayaOverload.toLocaleString()}</p>
+    <p><strong>Total Estimasi:</strong> <span class="text-green-600 font-bold">Rp${total.toLocaleString()}</span></p>
+  `;
+  document.getElementById('waText').value = `
+🚚 Estimasi Ongkir
 
-    const t = tarif[kendaraan];
-    const totalJarak = pp ? jarak * 2 : jarak;
-    const biayaBBM = totalJarak * t.konsumsi * hargaBBM;
-    const biayaJasa = totalJarak * t.tarifPerKm;
-    const overload = berat > t.kapasitas ? (berat - t.kapasitas) : 0;
-    const biayaOverload = overload * t.overload;
-    const total = Math.round(biayaBBM + biayaJasa + t.tetap + tol + biayaHelper + tambahanTujuan + biayaOverload);
+🔹 Kendaraan: ${kendaraan === 'pickup' ? 'Pick Up' : 'Van'}
+🔹 Jarak: ${jarak} km (PP ${pp ? '✅' : '❌'})
+🔹 Total Berat: ${berat} kg
+🔹 BBM: Rp${Math.round(biayaBBM).toLocaleString()}
+🔹 Jasa: Rp${biayaJasa.toLocaleString()}
+🔹 Tol: Rp${tol.toLocaleString()}
+🔹 Helper: ${helper ? '✅ Ya (Rp75.000)' : '❌ Tidak'}
+🔹 Tujuan: ${tujuan} titik
+🔹 Overload: Rp${biayaOverload.toLocaleString()}
 
-    document.getElementById('hasil').innerHTML = `
-      <p><strong>Biaya BBM:</strong> Rp${Math.round(biayaBBM).toLocaleString()}</p>
-      <p><strong>Biaya Jasa:</strong> Rp${biayaJasa.toLocaleString()}</p>
-      <p><strong>Biaya Tol:</strong> Rp${tol.toLocaleString()}</p>
-      <p><strong>Biaya Helper:</strong> Rp${biayaHelper.toLocaleString()}</p>
-      <p><strong>Multi Tujuan:</strong> Rp${tambahanTujuan.toLocaleString()}</p>
-      <p><strong>Overload (${overload} kg):</strong> Rp${biayaOverload.toLocaleString()}</p>
-      <p><strong>Total Estimasi:</strong> <span class="text-green-600 font-bold">Rp${total.toLocaleString()}</span></p>
-    `;
+🔍 Perhitungan Detail:
 
-    document.getElementById('waText').value = `
-ðŸšš Estimasi Ongkir
-
-ðŸ”¹ Kendaraan: ${kendaraan === 'pickup' ? 'Pick Up' : 'Van'}
-ðŸ”¹ Jarak: ${jarak} km (PP ${pp ? 'âœ…' : 'âŒ'})
-ðŸ”¹ Total Berat: ${berat} kg
-ðŸ”¹ BBM: Rp${Math.round(biayaBBM).toLocaleString()}
-ðŸ”¹ Jasa: Rp${biayaJasa.toLocaleString()}
-ðŸ”¹ Tol: Rp${tol.toLocaleString()}
-ðŸ”¹ Helper: ${helper ? 'âœ… Ya (Rp75.000)' : 'âŒ Tidak'}
-ðŸ”¹ Tujuan: ${tujuan} titik
-ðŸ”¹ Overload: Rp${biayaOverload.toLocaleString()}
-
-ðŸ” Perhitungan Detail:
-
-- BBM: ${totalJarak} km Ã— ${(t.konsumsi).toFixed(3)} km/l Ã— Rp${hargaBBM.toLocaleString()} = Rp${Math.round(biayaBBM).toLocaleString()}
-- Jasa: ${totalJarak} km Ã— Rp${t.tarifPerKm.toLocaleString()} = Rp${biayaJasa.toLocaleString()}
-${helper ? "- Helper: âœ… (Rp75.000)" : "- Helper: âŒ"}
+- BBM: ${totalJarak} km × ${(t.konsumsi).toFixed(3)} km/l × Rp${hargaBBM.toLocaleString()} = Rp${Math.round(biayaBBM).toLocaleString()}
+- Jasa: ${totalJarak} km × Rp${t.tarifPerKm.toLocaleString()} = Rp${biayaJasa.toLocaleString()}
+${helper ? "- Helper: ✅ (Rp75.000)" : "- Helper: ❌"}
 - Tol: Rp${tol.toLocaleString()}
-${tujuan > 1 ? `- Multi Tujuan: ${tujuan} tujuan â†’ Tambahan Rp${tambahanTujuan.toLocaleString()}` : ""}
-${overload > 0 ? `- Overload: ${overload} kg Ã— Rp${t.overload.toLocaleString()} = Rp${biayaOverload.toLocaleString()}` : ""}
+${tujuan > 1 ? `- Multi Tujuan: ${tujuan} tujuan → Tambahan Rp${tambahanTujuan.toLocaleString()}` : ""}
+${overload > 0 ? `- Overload: ${overload} kg × Rp${t.overload.toLocaleString()} = Rp${biayaOverload.toLocaleString()}` : ""}
 
-ðŸ’° Total Estimasi: Rp${total.toLocaleString()}
+💰 Total Estimasi: Rp${total.toLocaleString()}
 `.trim();
-  }
+}
 
-  
 function salinWA() {
   const textArea = document.getElementById('waText');
   textArea.classList.remove('hidden');
   textArea.select();
-  textArea.setSelectionRange(0, 99999); // for mobile
-
+  textArea.setSelectionRange(0, 99999);
   try {
     const success = document.execCommand('copy');
-    alert(success ? "âœ… Estimasi berhasil disalin! Tempelkan di WhatsApp." : "âŒ Gagal menyalin teks.");
+    alert(success ? "✅ Estimasi berhasil disalin! Tempelkan di WhatsApp." : "❌ Gagal menyalin teks.");
   } catch (err) {
-    alert("âŒ Gagal menyalin teks.");
+    alert("❌ Gagal menyalin teks.");
   }
-
   textArea.classList.add('hidden');
 }
-    const text = document.getElementById('waText').value;
-    navigator.clipboard.writeText(text)
-      .then(() => alert("âœ… Estimasi berhasil disalin! Tempelkan di WhatsApp."))
-      .catch(() => alert("âŒ Gagal menyalin teks."));
-  }
 </script>
 </body>
 </html>
