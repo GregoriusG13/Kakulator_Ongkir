@@ -3,16 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kalkulator Ongkir</title>
+  <title>Kalkulator Ongkir dengan Google Maps</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 p-6">
   <div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
     <h1 class="text-2xl font-bold mb-4">Kalkulator Ongkir</h1>
 
-    <label class="block mb-2">Jarak Pengiriman (km)</label>
-    <input id="jarak" type="number" class="w-full border p-2 mb-4 rounded" placeholder="Masukkan jarak" />
+    <!-- Input Alamat -->
+    <label class="block mb-2">Alamat Jemput</label>
+    <input id="alamatJemput" type="text" class="w-full border p-2 mb-4 rounded" placeholder="Contoh: Jatibening, Bekasi" />
+    
+    <label class="block mb-2">Alamat Tujuan</label>
+    <input id="alamatTujuan" type="text" class="w-full border p-2 mb-4 rounded" placeholder="Contoh: Tanah Abang, Jakarta" />
 
+    <!-- Tombol Ambil Jarak dari Google -->
+    <button onclick="ambilJarak()" class="w-full bg-yellow-500 text-white py-2 rounded mb-4">
+      Ambil Jarak Otomatis dari Google
+    </button>
+
+    <!-- Dropdown Pilih Jarak -->
+    <label class="block mb-2">Pilih Rute (tol / non-tol)</label>
+    <select id="jarakSelector" class="w-full border p-2 rounded mb-4" onchange="updateJarak()">
+      <option value="">-- Pilih rute otomatis --</option>
+    </select>
+
+    <label class="block mb-2">Jarak Pengiriman (km)</label>
+    <input id="jarak" type="number" class="w-full border p-2 mb-4 rounded" placeholder="Masukkan jarak jika manual" />
+
+    <!-- Pilih Kendaraan -->
     <label class="block mb-2">Jenis Kendaraan</label>
     <div class="flex space-x-4 mb-4">
       <button onclick="pilih('pickup')" id="btnPickup" class="px-4 py-2 border rounded bg-blue-100">Pick Up</button>
@@ -58,6 +77,46 @@
       } else {
         document.getElementById('btnVan').classList.add('bg-blue-600', 'text-white');
       }
+    }
+
+    function updateJarak() {
+      const km = document.getElementById("jarakSelector").value;
+      document.getElementById("jarak").value = km;
+    }
+
+    async function ambilJarak() {
+      const asal = document.getElementById("alamatJemput").value;
+      const tujuan = document.getElementById("alamatTujuan").value;
+
+      // 🛠️ GANTI dengan API Key kamu dari Google Cloud Console
+      const apiKey = "AIzaSyCiuyPP5eF6D7oce-Kyb6FzDPuaGHX7nUg";
+
+      if (!asal || !tujuan) {
+        alert("Isi alamat jemput dan tujuan dulu ya!");
+        return;
+      }
+
+      const [withToll, withoutToll] = await Promise.all([
+        fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(asal)}&destination=${encodeURIComponent(tujuan)}&key=${apiKey}`)
+          .then(res => res.json()),
+        fetch(`https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(asal)}&destination=${encodeURIComponent(tujuan)}&avoid=tolls&key=${apiKey}`)
+          .then(res => res.json()),
+      ]);
+
+      const select = document.getElementById("jarakSelector");
+      select.innerHTML = "";
+
+      if (withToll.routes.length > 0) {
+        const km = withToll.routes[0].legs[0].distance.value / 1000;
+        select.innerHTML += `<option value="${km.toFixed(1)}">Lewat TOL (${km.toFixed(1)} km)</option>`;
+      }
+
+      if (withoutToll.routes.length > 0) {
+        const km = withoutToll.routes[0].legs[0].distance.value / 1000;
+        select.innerHTML += `<option value="${km.toFixed(1)}">Tanpa TOL (${km.toFixed(1)} km)</option>`;
+      }
+
+      alert("✅ Jarak berhasil diambil! Pilih rute yang ingin digunakan.");
     }
 
     function hitung() {
