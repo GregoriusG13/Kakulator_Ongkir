@@ -39,9 +39,8 @@
 
     <div class="mt-6 space-y-4" id="hasil"></div>
 
-    <div class="mt-4 flex space-x-2">
-      <button onclick="salinWA()" class="bg-green-600 text-white px-4 py-2 rounded">Salin ke WA</button>
-      <button onclick="kirimWA()" class="bg-green-500 text-white px-4 py-2 rounded">Kirim ke WhatsApp</button>
+    <div class="mt-4">
+      <button onclick="salinWA()" class="bg-green-600 text-white px-4 py-2 rounded">Salin Estimasi ke Clipboard</button>
     </div>
 
     <textarea id="waText" class="hidden"></textarea>
@@ -109,16 +108,9 @@
     function salinWA() {
       const text = document.getElementById('waText').value;
       navigator.clipboard.writeText(text)
-        .then(() => alert("Teks berhasil disalin ke clipboard!"))
-        .catch(() => alert("Gagal menyalin teks."));
-    }
-
-    function kirimWA() {
-      const text = document.getElementById('waText').value;
-      const encoded = encodeURIComponent(text);
-      window.open(`https://wa.me/?text=${encoded}`, '_blank');
+        .then(() => alert("✅ Estimasi berhasil disalin! Tempelkan di WhatsApp."))
+        .catch(() => alert("❌ Gagal menyalin teks."));
     }
   </script>
 </body>
 </html>
-
