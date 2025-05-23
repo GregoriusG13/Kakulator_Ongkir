@@ -1,40 +1,200 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kalkulator Ongkir - Login</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalkulator Ongkir - Multi Barang</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <style>
-    #mainApp { display: none; }
-  </style>
 </head>
-<body class="bg-gray-100 p-6">
-  <!-- Form Login -->
-  <div id="loginForm" class="max-w-sm mx-auto bg-white p-6 rounded shadow">
-    <h2 class="text-xl font-bold mb-4">Login ke Kalkulator</h2>
-    <input type="password" id="password" placeholder="Masukkan password" class="w-full border p-2 rounded mb-4" />
-    <button onclick="cekPassword()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Masuk</button>
-    <p id="loginError" class="text-red-600 text-sm mt-2 hidden">Password salah. Coba lagi!</p>
-  </div>
 
-  <!-- Aplikasi Kalkulator (disembunyikan sampai login berhasil) -->
-  <div id="mainApp" class="mt-8">
-    <iframe src="kalkulator-ongkir-multi-barang-transparan.html" width="100%" height="1000" class="border rounded shadow"></iframe>
+<body onload="document.getElementById('mainApp').style.display = 'none';"
+ class="bg-gray-100 p-6">
+  
+<!-- Login Form -->
+<div id="loginForm" class="max-w-sm mx-auto bg-white p-6 rounded shadow mb-6">
+  <h2 class="text-xl font-bold mb-4">Login ke Kalkulator</h2>
+  <input type="password" id="password" placeholder="Masukkan password" class="w-full border p-2 rounded mb-4" />
+  <button onclick="cekPassword()" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Masuk</button>
+  <p id="loginError" class="text-red-600 text-sm mt-2 hidden">Password salah. Coba lagi!</p>
+</div>
+
+<!-- Kalkulator -->
+<div id="mainApp">
+<div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
+
+    <h1 class="text-2xl font-bold mb-4">Kalkulator Ongkir</h1>
+
+    <label class="block mb-2">Tambah Barang</label>
+    <div class="flex gap-2 mb-4">
+      <select id="jenisBarang" class="flex-1 border p-2 rounded">
+        <option value="">-- Pilih barang --</option>
+        <option value="50">Kulkas 1 pintu (50 kg)</option>
+        <option value="60">Mesin Cuci (60 kg)</option>
+        <option value="80">Lemari Besar (80 kg)</option>
+        <option value="100">Sofa 3 Seater (100 kg)</option>
+        <option value="25">Dus Besar (25 kg)</option>
+      </select>
+      <input id="jumlahBarang" type="number" min="1" value="1" class="w-20 border p-2 rounded" />
+      <button onclick="tambahBarang()" class="bg-blue-600 text-white px-4 py-2 rounded">Tambah</button>
+    </div>
+
+    <div id="daftarBarang" class="mb-6 text-sm text-gray-700"></div>
+
+    <label class="block mb-2">Total Berat (kg)</label>
+    <input id="berat" type="number" readonly class="w-full border p-2 mb-4 rounded bg-gray-100" />
+
+    <label class="block mb-2">Jarak Pengiriman (km)</label>
+    <input id="jarak" type="number" class="w-full border p-2 mb-4 rounded" />
+
+    <label class="block mb-2">Jenis Kendaraan</label>
+    <div class="flex space-x-4 mb-4">
+      <button onclick="pilih('pickup')" id="btnPickup" class="px-4 py-2 border rounded bg-blue-100">Pick Up</button>
+      <button onclick="pilih('van')" id="btnVan" class="px-4 py-2 border rounded">Van</button>
+    </div>
+
+    <label class="block mb-2">Biaya Tol (opsional)</label>
+    <input id="tol" type="number" class="w-full border p-2 mb-4 rounded" />
+
+    <label class="block mb-2">Jumlah Tujuan</label>
+    <input id="tujuan" type="number" class="w-full border p-2 mb-4 rounded" value="1" />
+
+    <div class="flex items-center space-x-2 my-4">
+      <input type="checkbox" id="pp" />
+      <label for="pp">Pulang Pergi?</label>
+    </div>
+
+    <div class="flex items-center space-x-2 mb-4">
+      <input type="checkbox" id="helper" />
+      <label for="helper">Butuh Helper? (+Rp75.000)</label>
+    </div>
+
+    <button onclick="hitung()" class="w-full bg-blue-600 text-white py-2 rounded">Hitung Ongkir</button>
+
+    <div class="mt-6 space-y-4" id="hasil"></div>
+
+    <div class="mt-4">
+      <button onclick="salinWA()" class="bg-green-600 text-white px-4 py-2 rounded">Salin Estimasi ke Clipboard</button>
+    </div>
+
+    <textarea id="waText" class="hidden"></textarea>
   </div>
 
   <script>
-    function cekPassword() {
-      const pass = document.getElementById("password").value;
-      const benar = "ongkir123"; // Ubah password di sini
+    let kendaraan = 'pickup';
+    let barangList = [];
 
-      if (pass === benar) {
-        document.getElementById("loginForm").style.display = "none";
-        document.getElementById("mainApp").style.display = "block";
+    function pilih(jenis) {
+      kendaraan = jenis;
+      document.getElementById('btnPickup').classList.remove('bg-blue-600', 'text-white');
+      document.getElementById('btnVan').classList.remove('bg-blue-600', 'text-white');
+      if (jenis === 'pickup') {
+        document.getElementById('btnPickup').classList.add('bg-blue-600', 'text-white');
       } else {
-        document.getElementById("loginError").style.display = "block";
+        document.getElementById('btnVan').classList.add('bg-blue-600', 'text-white');
       }
     }
-  </script>
+
+    function tambahBarang() {
+      const berat = parseFloat(document.getElementById("jenisBarang").value);
+      const jumlah = parseInt(document.getElementById("jumlahBarang").value);
+      const label = document.getElementById("jenisBarang").selectedOptions[0].text;
+
+      if (!berat || !jumlah) return;
+
+      barangList.push({ label, berat, jumlah });
+      renderBarang();
+    }
+
+    function renderBarang() {
+      const container = document.getElementById("daftarBarang");
+      container.innerHTML = barangList.map(item => 
+        `<div>• ${item.label} × ${item.jumlah} = ${item.berat * item.jumlah} kg</div>`
+      ).join("");
+
+      const totalBerat = barangList.reduce((sum, item) => sum + item.berat * item.jumlah, 0);
+      document.getElementById("berat").value = totalBerat;
+    }
+
+    function hitung() {
+      const jarak = parseFloat(document.getElementById('jarak').value) || 0;
+      const berat = parseFloat(document.getElementById('berat').value) || 0;
+      const tol = parseFloat(document.getElementById('tol').value) || 0;
+      const tujuan = parseInt(document.getElementById('tujuan').value) || 1;
+      const pp = document.getElementById('pp').checked;
+      const helper = document.getElementById('helper').checked;
+
+      const tarif = {
+        pickup: { tarifPerKm: 5500, konsumsi: 1 / 8, tetap: 60000, kapasitas: 800, overload: 300 },
+        van: { tarifPerKm: 6000, konsumsi: 1 / 10, tetap: 45000, kapasitas: 400, overload: 500 },
+      };
+
+      const hargaBBM = 10500;
+      const biayaHelper = helper ? 75000 : 0;
+      const tambahanTujuan = (tujuan - 1) * 10000;
+
+      const t = tarif[kendaraan];
+      const totalJarak = pp ? jarak * 2 : jarak;
+      const biayaBBM = totalJarak * t.konsumsi * hargaBBM;
+      const biayaJasa = totalJarak * t.tarifPerKm;
+
+      const overload = berat > t.kapasitas ? (berat - t.kapasitas) : 0;
+      const biayaOverload = overload * t.overload;
+
+      const total = Math.round(biayaBBM + biayaJasa + t.tetap + tol + biayaHelper + tambahanTujuan + biayaOverload);
+
+      document.getElementById('hasil').innerHTML = `
+        <p><strong>Biaya BBM:</strong> Rp${Math.round(biayaBBM).toLocaleString()}</p>
+        <p><strong>Biaya Jasa:</strong> Rp${biayaJasa.toLocaleString()}</p>
+        <p><strong>Biaya Tol:</strong> Rp${tol.toLocaleString()}</p>
+        <p><strong>Biaya Helper:</strong> Rp${biayaHelper.toLocaleString()}</p>
+        <p><strong>Multi Tujuan:</strong> Rp${tambahanTujuan.toLocaleString()}</p>
+        <p><strong>Overload (${overload} kg):</strong> Rp${biayaOverload.toLocaleString()}</p>
+        <p><strong>Total Estimasi:</strong> <span class="text-green-600 font-bold">Rp${total.toLocaleString()}</span></p>
+      `;
+
+      document.getElementById('waText').value = `
+🚚 Estimasi Ongkir
+
+🔹 Kendaraan: ${kendaraan === 'pickup' ? 'Pick Up' : 'Van'}
+🔹 Jarak: ${jarak} km (PP ${pp ? '✅' : '❌'})
+🔹 Total Berat: ${berat} kg
+🔹 BBM: Rp${Math.round(biayaBBM).toLocaleString()}
+🔹 Jasa: Rp${biayaJasa.toLocaleString()}
+🔹 Tol: Rp${tol.toLocaleString()}
+🔹 Helper: ${helper ? '✅ Ya (Rp75.000)' : '❌ Tidak'}
+🔹 Tujuan: ${tujuan} titik
+🔹 Overload: Rp${biayaOverload.toLocaleString()}
+
+🔍 Perhitungan Detail:
+
+- BBM: ${totalJarak} km × ${(t.konsumsi).toFixed(3)} km/l × Rp${hargaBBM.toLocaleString()} = Rp${Math.round(biayaBBM).toLocaleString()}
+- Jasa: ${totalJarak} km × Rp${t.tarifPerKm.toLocaleString()} = Rp${biayaJasa.toLocaleString()}
+${helper ? "- Helper: ✅ (Rp75.000)" : "- Helper: ❌"}
+- Tol: Rp${tol.toLocaleString()}
+${tujuan > 1 ? `- Multi Tujuan: ${tujuan} tujuan → Tambahan Rp${tambahanTujuan.toLocaleString()}` : ""}
+${overload > 0 ? `- Overload: ${overload} kg × Rp${t.overload.toLocaleString()} = Rp${biayaOverload.toLocaleString()}` : ""}
+`.trim();
+    }
+
+    function salinWA() {
+      const text = document.getElementById('waText').value;
+      navigator.clipboard.writeText(text)
+        .then(() => alert("✅ Estimasi berhasil disalin! Tempelkan di WhatsApp."))
+        .catch(() => alert("❌ Gagal menyalin teks."));
+    }
+  
+function cekPassword() {
+  const pass = document.getElementById("password").value;
+  const benar = "ongkir123"; // Ubah password sesuai keinginan
+
+  if (pass === benar) {
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("mainApp").style.display = "block";
+  } else {
+    document.getElementById("loginError").style.display = "block";
+  }
+}
+</script>
+
 </body>
 </html>
