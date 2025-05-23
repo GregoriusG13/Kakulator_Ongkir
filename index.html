@@ -7,7 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 
-<body onload="document.getElementById('mainApp').style.display = 'none';"
+<body onload="document.getElementById('mainApp').style.display = 'none';" class="bg-gray-100 p-4 overflow-x-hidden"
  class="bg-gray-100 p-6">
   
 <!-- Login Form -->
@@ -20,7 +20,7 @@
 
 <!-- Kalkulator -->
 <div id="mainApp">
-<div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
+<div class="max-w-full sm:max-w-xl mx-auto bg-white p-6 rounded shadow">
 
     <h1 class="text-2xl font-bold mb-4">Kalkulator Ongkir</h1>
 
@@ -34,7 +34,7 @@
         <option value="100">Sofa 3 Seater (100 kg)</option>
         <option value="25">Dus Besar (25 kg)</option>
       </select>
-      <input id="jumlahBarang" type="number" min="1" value="1" class="w-20 border p-2 rounded" />
+      <input id="jumlahBarang" type="number" min="1" value="1" class="w-20 sm:w-20 w-full border p-2 rounded" />
       <button onclick="tambahBarang()" class="bg-blue-600 text-white px-4 py-2 rounded">Tambah</button>
     </div>
 
@@ -174,9 +174,8 @@ ${helper ? "- Helper: ✅ (Rp75.000)" : "- Helper: ❌"}
 ${tujuan > 1 ? `- Multi Tujuan: ${tujuan} tujuan → Tambahan Rp${tambahanTujuan.toLocaleString()}` : ""}
 ${overload > 0 ? `- Overload: ${overload} kg × Rp${t.overload.toLocaleString()} = Rp${biayaOverload.toLocaleString()}` : ""}
 
-💰 Total Estimasi: Rp${total.toLocaleString()}
-
-`.trim();
+$1
++ `\n\n💰 Total Estimasi: Rp${total.toLocaleString()}`.trim();
     }
 
     function salinWA() {
@@ -188,7 +187,7 @@ ${overload > 0 ? `- Overload: ${overload} kg × Rp${t.overload.toLocaleString()}
   
 function cekPassword() {
   const pass = document.getElementById("password").value;
-  const benar = "GatsOrder67"; // Ubah password sesuai keinginan
+  const benar = "ongkir123"; // Ubah password sesuai keinginan
 
   if (pass === benar) {
     document.getElementById("loginForm").style.display = "none";
