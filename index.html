@@ -190,6 +190,7 @@ function cekPassword() {
   const benar = "ongkir123"; // Ubah password sesuai keinginan
 
   if (pass === benar) {
+    document.getElementById("mainApp").style.display = "block";
     document.getElementById("loginForm").style.display = "none";
     document.getElementById("mainApp").style.display = "block";
   } else {
