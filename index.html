@@ -166,7 +166,7 @@ function hitung() {
 
 🔍 Perhitungan Detail:
 
-- BBM: ${totalJarak} km × ${(t.konsumsi).toFixed(3)} km/l × Rp${hargaBBM.toLocaleString()} = Rp${Math.round(biayaBBM).toLocaleString()}
+- BBM: ${totalJarak} km × ${(1 / t.konsumsi).toFixed(0)} km/l × Rp${hargaBBM.toLocaleString()} = Rp${Math.round(biayaBBM).toLocaleString()}
 - Jasa: ${totalJarak} km × Rp${t.tarifPerKm.toLocaleString()} = Rp${biayaJasa.toLocaleString()}
 ${helper ? "- Helper: ✅ (Rp75.000)" : "- Helper: ❌"}
 - Tol: Rp${tol.toLocaleString()}
