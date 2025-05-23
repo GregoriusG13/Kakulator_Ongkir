@@ -151,7 +151,16 @@
 🔹 Tujuan: ${tujuan} titik
 🔹 Overload: Rp${biayaOverload.toLocaleString()}
 
-💰 Total Estimasi: Rp${total.toLocaleString()}
+🔍 Perhitungan Detail:
+
+- BBM: ${totalJarak} km × ${(t.konsumsi).toFixed(3)} km/l × Rp${hargaBBM.toLocaleString()} = Rp${Math.round(biayaBBM).toLocaleString()}
+- Jasa: ${totalJarak} km × Rp${t.tarifPerKm.toLocaleString()} = Rp${biayaJasa.toLocaleString()}
+${helper ? "- Helper: ✅ (Rp75.000)" : "- Helper: ❌"}
+- Tol: Rp${tol.toLocaleString()}
+${tujuan > 1 ? `- Multi Tujuan: ${tujuan} tujuan → Tambahan Rp${tambahanTujuan.toLocaleString()}` : ""}
+${overload > 0 ? `- Overload: ${overload} kg × Rp${t.overload.toLocaleString()} = Rp${biayaOverload.toLocaleString()}` : ""}
+
+$1
 `.trim();
     }
 
