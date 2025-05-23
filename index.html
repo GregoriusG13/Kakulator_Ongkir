@@ -3,31 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kalkulator Ongkir</title>
+  <title>Kalkulator Ongkir - Multi Barang</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 p-6">
   <div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
     <h1 class="text-2xl font-bold mb-4">Kalkulator Ongkir</h1>
 
+    <label class="block mb-2">Tambah Barang</label>
+    <div class="flex gap-2 mb-4">
+      <select id="jenisBarang" class="flex-1 border p-2 rounded">
+        <option value="">-- Pilih barang --</option>
+        <option value="50">Kulkas 1 pintu (50 kg)</option>
+        <option value="60">Mesin Cuci (60 kg)</option>
+        <option value="80">Lemari Besar (80 kg)</option>
+        <option value="100">Sofa 3 Seater (100 kg)</option>
+        <option value="25">Dus Besar (25 kg)</option>
+      </select>
+      <input id="jumlahBarang" type="number" min="1" value="1" class="w-20 border p-2 rounded" />
+      <button onclick="tambahBarang()" class="bg-blue-600 text-white px-4 py-2 rounded">Tambah</button>
+    </div>
+
+    <div id="daftarBarang" class="mb-6 text-sm text-gray-700"></div>
+
+    <label class="block mb-2">Total Berat (kg)</label>
+    <input id="berat" type="number" readonly class="w-full border p-2 mb-4 rounded bg-gray-100" />
+
     <label class="block mb-2">Jarak Pengiriman (km)</label>
-    <input id="jarak" type="number" class="w-full border p-2 mb-4 rounded" placeholder="Masukkan jarak" />
-
-   <!-- Dropdown jenis barang -->
-<label class="block mb-2">Pilih Jenis Barang</label>
-<select id="jenisBarang" onchange="isiBeratOtomatis()" class="w-full border p-2 mb-4 rounded">
-  <option value="">-- Pilih jenis barang (opsional) --</option>
-  <option value="50">Kulkas 1 pintu (50 kg)</option>
-  <option value="60">Mesin Cuci (60 kg)</option>
-  <option value="80">Lemari Besar (80 kg)</option>
-  <option value="100">Sofa 3 Seater (100 kg)</option>
-  <option value="25">Dus Besar (25 kg)</option>
-</select>
-
-<!-- Tetap bisa ubah berat manual -->
-<label class="block mb-2">Berat Barang (kg)</label>
-<input id="berat" type="number" class="w-full border p-2 mb-4 rounded" placeholder="Contoh: 500" />
-
+    <input id="jarak" type="number" class="w-full border p-2 mb-4 rounded" />
 
     <label class="block mb-2">Jenis Kendaraan</label>
     <div class="flex space-x-4 mb-4">
@@ -36,7 +39,7 @@
     </div>
 
     <label class="block mb-2">Biaya Tol (opsional)</label>
-    <input id="tol" type="number" class="w-full border p-2 mb-4 rounded" placeholder="Masukkan biaya tol" />
+    <input id="tol" type="number" class="w-full border p-2 mb-4 rounded" />
 
     <label class="block mb-2">Jumlah Tujuan</label>
     <input id="tujuan" type="number" class="w-full border p-2 mb-4 rounded" value="1" />
@@ -62,64 +65,85 @@
     <textarea id="waText" class="hidden"></textarea>
   </div>
 
-
   <script>
-  let kendaraan = 'pickup';
+    let kendaraan = 'pickup';
+    let barangList = [];
 
-  function pilih(jenis) {
-    kendaraan = jenis;
-    document.getElementById('btnPickup').classList.remove('bg-blue-600', 'text-white');
-    document.getElementById('btnVan').classList.remove('bg-blue-600', 'text-white');
-    if (jenis === 'pickup') {
-      document.getElementById('btnPickup').classList.add('bg-blue-600', 'text-white');
-    } else {
-      document.getElementById('btnVan').classList.add('bg-blue-600', 'text-white');
+    function pilih(jenis) {
+      kendaraan = jenis;
+      document.getElementById('btnPickup').classList.remove('bg-blue-600', 'text-white');
+      document.getElementById('btnVan').classList.remove('bg-blue-600', 'text-white');
+      if (jenis === 'pickup') {
+        document.getElementById('btnPickup').classList.add('bg-blue-600', 'text-white');
+      } else {
+        document.getElementById('btnVan').classList.add('bg-blue-600', 'text-white');
+      }
     }
-  }
 
-  function hitung() {
-    const jarak = parseFloat(document.getElementById('jarak').value) || 0;
-    const berat = parseFloat(document.getElementById('berat').value) || 0;
-    const tol = parseFloat(document.getElementById('tol').value) || 0;
-    const tujuan = parseInt(document.getElementById('tujuan').value) || 1;
-    const pp = document.getElementById('pp').checked;
-    const helper = document.getElementById('helper').checked;
+    function tambahBarang() {
+      const berat = parseFloat(document.getElementById("jenisBarang").value);
+      const jumlah = parseInt(document.getElementById("jumlahBarang").value);
+      const label = document.getElementById("jenisBarang").selectedOptions[0].text;
 
-    const tarif = {
-      pickup: { tarifPerKm: 5500, konsumsi: 1 / 8, tetap: 60000, kapasitas: 800, overload: 300 },
-      van: { tarifPerKm: 6000, konsumsi: 1 / 10, tetap: 45000, kapasitas: 400, overload: 500 },
-    };
+      if (!berat || !jumlah) return;
 
-    const hargaBBM = 10500;
-    const biayaHelper = helper ? 75000 : 0;
-    const tambahanTujuan = (tujuan - 1) * 10000;
+      barangList.push({ label, berat, jumlah });
+      renderBarang();
+    }
 
-    const t = tarif[kendaraan];
-    const totalJarak = pp ? jarak * 2 : jarak;
-    const biayaBBM = totalJarak * t.konsumsi * hargaBBM;
-    const biayaJasa = totalJarak * t.tarifPerKm;
+    function renderBarang() {
+      const container = document.getElementById("daftarBarang");
+      container.innerHTML = barangList.map(item => 
+        `<div>• ${item.label} × ${item.jumlah} = ${item.berat * item.jumlah} kg</div>`
+      ).join("");
 
-    const overload = berat > t.kapasitas ? (berat - t.kapasitas) : 0;
-    const biayaOverload = overload * t.overload;
+      const totalBerat = barangList.reduce((sum, item) => sum + item.berat * item.jumlah, 0);
+      document.getElementById("berat").value = totalBerat;
+    }
 
-    const total = Math.round(biayaBBM + biayaJasa + t.tetap + tol + biayaHelper + tambahanTujuan + biayaOverload);
+    function hitung() {
+      const jarak = parseFloat(document.getElementById('jarak').value) || 0;
+      const berat = parseFloat(document.getElementById('berat').value) || 0;
+      const tol = parseFloat(document.getElementById('tol').value) || 0;
+      const tujuan = parseInt(document.getElementById('tujuan').value) || 1;
+      const pp = document.getElementById('pp').checked;
+      const helper = document.getElementById('helper').checked;
 
-    document.getElementById('hasil').innerHTML = `
-      <p><strong>Biaya BBM:</strong> Rp${Math.round(biayaBBM).toLocaleString()}</p>
-      <p><strong>Biaya Jasa:</strong> Rp${biayaJasa.toLocaleString()}</p>
-      <p><strong>Biaya Tol:</strong> Rp${tol.toLocaleString()}</p>
-      <p><strong>Biaya Helper:</strong> Rp${biayaHelper.toLocaleString()}</p>
-      <p><strong>Multi Tujuan:</strong> Rp${tambahanTujuan.toLocaleString()}</p>
-      <p><strong>Overload (${overload} kg):</strong> Rp${biayaOverload.toLocaleString()}</p>
-      <p><strong>Total Estimasi:</strong> <span class="text-green-600 font-bold">Rp${total.toLocaleString()}</span></p>
-    `;
+      const tarif = {
+        pickup: { tarifPerKm: 5500, konsumsi: 1 / 8, tetap: 60000, kapasitas: 800, overload: 300 },
+        van: { tarifPerKm: 6000, konsumsi: 1 / 10, tetap: 45000, kapasitas: 400, overload: 500 },
+      };
 
-    document.getElementById('waText').value = `
+      const hargaBBM = 10500;
+      const biayaHelper = helper ? 75000 : 0;
+      const tambahanTujuan = (tujuan - 1) * 10000;
+
+      const t = tarif[kendaraan];
+      const totalJarak = pp ? jarak * 2 : jarak;
+      const biayaBBM = totalJarak * t.konsumsi * hargaBBM;
+      const biayaJasa = totalJarak * t.tarifPerKm;
+
+      const overload = berat > t.kapasitas ? (berat - t.kapasitas) : 0;
+      const biayaOverload = overload * t.overload;
+
+      const total = Math.round(biayaBBM + biayaJasa + t.tetap + tol + biayaHelper + tambahanTujuan + biayaOverload);
+
+      document.getElementById('hasil').innerHTML = `
+        <p><strong>Biaya BBM:</strong> Rp${Math.round(biayaBBM).toLocaleString()}</p>
+        <p><strong>Biaya Jasa:</strong> Rp${biayaJasa.toLocaleString()}</p>
+        <p><strong>Biaya Tol:</strong> Rp${tol.toLocaleString()}</p>
+        <p><strong>Biaya Helper:</strong> Rp${biayaHelper.toLocaleString()}</p>
+        <p><strong>Multi Tujuan:</strong> Rp${tambahanTujuan.toLocaleString()}</p>
+        <p><strong>Overload (${overload} kg):</strong> Rp${biayaOverload.toLocaleString()}</p>
+        <p><strong>Total Estimasi:</strong> <span class="text-green-600 font-bold">Rp${total.toLocaleString()}</span></p>
+      `;
+
+      document.getElementById('waText').value = `
 🚚 Estimasi Ongkir
 
 🔹 Kendaraan: ${kendaraan === 'pickup' ? 'Pick Up' : 'Van'}
 🔹 Jarak: ${jarak} km (PP ${pp ? '✅' : '❌'})
-🔹 Berat: ${berat} kg
+🔹 Total Berat: ${berat} kg
 🔹 BBM: Rp${Math.round(biayaBBM).toLocaleString()}
 🔹 Jasa: Rp${biayaJasa.toLocaleString()}
 🔹 Tol: Rp${tol.toLocaleString()}
@@ -129,20 +153,14 @@
 
 💰 Total Estimasi: Rp${total.toLocaleString()}
 `.trim();
-  }
+    }
 
-  function salinWA() {
-    const text = document.getElementById('waText').value;
-    navigator.clipboard.writeText(text)
-      .then(() => alert("✅ Estimasi berhasil disalin! Tempelkan di WhatsApp."))
-      .catch(() => alert("❌ Gagal menyalin teks."));
-  }
-    function isiBeratOtomatis() {
-  const berat = document.getElementById('jenisBarang').value;
-  if (berat) {
-    document.getElementById('berat').value = berat;
-  }
-}
-</script>
+    function salinWA() {
+      const text = document.getElementById('waText').value;
+      navigator.clipboard.writeText(text)
+        .then(() => alert("✅ Estimasi berhasil disalin! Tempelkan di WhatsApp."))
+        .catch(() => alert("❌ Gagal menyalin teks."));
+    }
+  </script>
 </body>
 </html>
