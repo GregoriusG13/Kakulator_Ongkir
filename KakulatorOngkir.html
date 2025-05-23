@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalkulator Ongkir</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-6">
+  <div class="max-w-xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-2xl font-bold mb-4">Kalkulator Ongkir</h1>
+
+    <label class="block mb-2">Jarak Pengiriman (km)</label>
+    <input id="jarak" type="number" class="w-full border p-2 mb-4 rounded" placeholder="Masukkan jarak" />
+
+    <label class="block mb-2">Jenis Kendaraan</label>
+    <div class="flex space-x-4 mb-4">
+      <button onclick="pilih('pickup')" id="btnPickup" class="px-4 py-2 border rounded bg-blue-100">Pick Up</button>
+      <button onclick="pilih('van')" id="btnVan" class="px-4 py-2 border rounded">Van</button>
+    </div>
+
+    <label class="block mb-2">Biaya Tol (opsional)</label>
+    <input id="tol" type="number" class="w-full border p-2 mb-4 rounded" placeholder="Masukkan biaya tol" />
+
+    <label class="block mb-2">Jumlah Tujuan</label>
+    <input id="tujuan" type="number" class="w-full border p-2 mb-4 rounded" value="1" />
+
+    <div class="flex items-center space-x-2 my-4">
+      <input type="checkbox" id="pp" />
+      <label for="pp">Pulang Pergi?</label>
+    </div>
+
+    <div class="flex items-center space-x-2 mb-4">
+      <input type="checkbox" id="helper" />
+      <label for="helper">Butuh Helper? (+Rp75.000)</label>
+    </div>
+
+    <button onclick="hitung()" class="w-full bg-blue-600 text-white py-2 rounded">Hitung Ongkir</button>
+
+    <div class="mt-6" id="hasil"></div>
+  </div>
+
+  <script>
+    let kendaraan = 'pickup';
+
+    function pilih(jenis) {
+      kendaraan = jenis;
+      document.getElementById('btnPickup').classList.remove('bg-blue-600', 'text-white');
+      document.getElementById('btnVan').classList.remove('bg-blue-600', 'text-white');
+      if (jenis === 'pickup') {
+        document.getElementById('btnPickup').classList.add('bg-blue-600', 'text-white');
+      } else {
+        document.getElementById('btnVan').classList.add('bg-blue-600', 'text-white');
+      }
+    }
+
+    function hitung() {
+      const jarak = parseFloat(document.getElementById('jarak').value) || 0;
+      const tol = parseFloat(document.getElementById('tol').value) || 0;
+      const tujuan = parseInt(document.getElementById('tujuan').value) || 1;
+      const pp = document.getElementById('pp').checked;
+      const helper = document.getElementById('helper').checked;
+
+      const tarif = {
+        pickup: { tarifPerKm: 5500, konsumsi: 1 / 8, tetap: 60000 },
+        van: { tarifPerKm: 6000, konsumsi: 1 / 10, tetap: 45000 },
+      };
+
+      const hargaBBM = 10500;
+      const biayaHelper = helper ? 75000 : 0;
+      const tambahanTujuan = (tujuan - 1) * 10000;
+      const totalJarak = pp ? jarak * 2 : jarak;
+
+      const t = tarif[kendaraan];
+      const biayaBBM = totalJarak * t.konsumsi * hargaBBM;
+      const biayaJasa = totalJarak * t.tarifPerKm;
+      const total = Math.round(biayaBBM + biayaJasa + t.tetap + tol + biayaHelper + tambahanTujuan);
+
+      document.getElementById('hasil').innerHTML = `
+        <p><strong>Biaya BBM:</strong> Rp${Math.round(biayaBBM).toLocaleString()}</p>
+        <p><strong>Biaya Jasa:</strong> Rp${biayaJasa.toLocaleString()}</p>
+        <p><strong>Biaya Tol:</strong> Rp${tol.toLocaleString()}</p>
+        <p><strong>Biaya Helper:</strong> Rp${biayaHelper.toLocaleString()}</p>
+        <p><strong>Multi Tujuan:</strong> Rp${tambahanTujuan.toLocaleString()}</p>
+        <p><strong>Total Estimasi:</strong> <span class="text-green-600 font-bold">Rp${total.toLocaleString()}</span></p>
+      `;
+    }
+  </script>
+</body>
+</html>
