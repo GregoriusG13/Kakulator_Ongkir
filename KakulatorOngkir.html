@@ -69,11 +69,10 @@
       const hargaBBM = 10500;
       const biayaHelper = helper ? 75000 : 0;
       const tambahanTujuan = (tujuan - 1) * 10000;
-      const totalJarak = pp ? jarak * 2 : jarak;
 
       const t = tarif[kendaraan];
-      const biayaBBM = totalJarak * t.konsumsi * hargaBBM;
-      const biayaJasa = totalJarak * t.tarifPerKm;
+      const biayaBBM = jarak * t.konsumsi * hargaBBM;
+      const biayaJasa = (pp ? jarak * 2 : jarak) * t.tarifPerKm;
       const total = Math.round(biayaBBM + biayaJasa + t.tetap + tol + biayaHelper + tambahanTujuan);
 
       document.getElementById('hasil').innerHTML = `
